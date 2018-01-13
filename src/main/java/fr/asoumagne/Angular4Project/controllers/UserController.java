@@ -1,24 +1,65 @@
 package fr.asoumagne.Angular4Project.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import fr.asoumagne.Angular4Project.models.User;
+import fr.asoumagne.Angular4Project.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class UserController {
-    String[] users = {"Alain", "Clara"};
+    @Autowired
+    UserRepository userRepository;
 
     @GetMapping("/users")
-    public String[] getAllUsers() {
-        return users;
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-    // Create a new Note
+    // Create
+    @PostMapping("/users")
+    public User createUsers(@Valid @RequestBody User user) {
+        return userRepository.save(user);
+    }
 
-    // Get a Single Note
+    // Get specific
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable(value = "id") Long userId) {
+        User user = userRepository.findOne(userId);
+        if(user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().body(user);
+    }
 
-    // Update a Note
+    // Update
+    @PutMapping("/user/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable(value = "id") Long userId, @Valid @RequestBody User userDetails) {
+        User user = userRepository.findOne(userId);
+        if(user == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-    // Delete a Note
+        user.setId(userDetails.getId());
+        user.setName(userDetails.getName());
+
+        User updatedNote = userRepository.save(user);
+        return ResponseEntity.ok(updatedNote);
+    }
+
+    // Delete
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<User> deleteUser(@PathVariable(value = "id") Long userId) {
+        User note = userRepository.findOne(userId);
+        if(note == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userRepository.delete(note);
+        return ResponseEntity.ok().build();
+    }
 }
